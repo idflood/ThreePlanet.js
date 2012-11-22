@@ -1,0 +1,13 @@
+temp
+dist
+.sass_cache
+.sass_cache/*
+.sass_cache/*/*
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+
+
+# Thumbnails
+._*

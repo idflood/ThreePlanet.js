@@ -1,0 +1,6 @@
+[submodule "components/threejs"]
+	path = components/threejs
+	url = git://github.com/mrdoob/three.js.git
+[submodule "app/components/threejs"]
+	path = app/components/threejs
+	url = git://github.com/mrdoob/three.js.git
