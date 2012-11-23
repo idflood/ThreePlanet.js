@@ -110,7 +110,8 @@ void main(void)
   float fTemp = (fLightScale * fCameraScale);
 
   // Initialize the scattering loop variables
-  float fSampleLength = length(v3Pos) / fSamples;
+  //float fSampleLength = length(v3Pos) / fSamples;
+  float fSampleLength = fFar / fSamples;
   float fScaledLength = fSampleLength * fScale;
   vec3 v3SampleRay = v3Ray * fSampleLength;
   vec3 v3SamplePoint = v3Start + v3SampleRay * 0.5;
