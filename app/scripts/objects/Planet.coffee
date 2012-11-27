@@ -131,6 +131,9 @@ define [
           @mGroundFromSpace.uniforms.Time.value = time
           @mGroundFromSpace.uniforms.fCameraHeight.value = cameraHeight
           @mGroundFromSpace.uniforms.fCameraHeight2.value = cameraHeight * cameraHeight
+          # Need to pass the camera position since three.js already pass it with matrixWorld applied
+          # # var position = camera.matrixWorld.getPosition();
+          # # _gl.uniform3f( p_uniforms.cameraPosition, position.x, position.y, position.z );
           @mGroundFromSpace.uniforms.v3CameraPos.value = @camera.position
 
       createBaseUniforms: () =>
