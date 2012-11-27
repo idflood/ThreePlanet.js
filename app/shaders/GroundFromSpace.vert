@@ -1,6 +1,6 @@
 //#version 110
 uniform vec3 v3LightPos;            // world space (or direction)
-//uniform vec3 v3CameraPos;           // The camera's current position (world space)
+uniform vec3 v3CameraPos;           // The camera's current position (world space)
 uniform vec3 v3InvWavelength;       // 1 / pow(wavelength, 4) for the red, green, and blue channels
 uniform float fCameraHeight2;       // fCameraHeight^2
 uniform float fOuterRadius;         // The outer (atmosphere) radius
@@ -27,20 +27,29 @@ varying float fLightIntensity;
 uniform sampler2D tBump;
 
 float fInvScaleDepth = (1.0 / fScaleDepth);
-
-//mat4 g_WorldViewProjectionMatrix = projectionMatrix * modelViewMatrix;
-
-//mat4 g_WorldMatrix = modelMatrix;
-//g_WorldMatrix = viewMatrix;
-//g_WorldMatrix = modelMatrix;
-//mat4 g_WorldViewProjectionMatrix = projectionMatrix * modelViewMatrix;
-//mat4 g_WorldViewProjectionMatrix = projectionMatrix * modelViewMatrix;
-//mat4 g_WorldMatrix = modelViewMatrix;
-
 /*
-vec3 v3WLightPos = vec3(g_WorldViewProjectionMatrix * vec4(v3LightPos, 0.0));
-vec3 v3WCameraPos = vec3(g_WorldViewProjectionMatrix * vec4(cameraPosition, 0.0));
-*/
+https://github.com/mrdoob/three.js/issues/1188
+http://jmonkeyengine.org/groups/graphics/forum/topic/help-learning-shaders/#post-180570
+
+model to world: g_WorldMatrix => modelMatrix
+model to view space: g_WorldViewMatrix => modelViewMatrix
+world to view space: g_ViewMatrix => viewMatrix
+projection: projectionMatrix
+ */
+
+mat4 g_WorldViewProjectionMatrix = projectionMatrix * modelViewMatrix;
+mat4 g_WorldMatrix = modelMatrix;
+
+
+//vec3 v3WLightPos = vec3(g_WorldViewProjectionMatrix * vec4(v3LightPos, 0.0));
+//vec3 v3WCameraPos = vec3(g_WorldViewProjectionMatrix * vec4(cameraPosition, 0.0));
+
+//vec3 v3WLightPos = vec3(g_WorldViewProjectionMatrix * vec4(v3LightPos, 0.0));
+//vec3 v3WCameraPos = vec3(g_WorldViewProjectionMatrix * vec4(cameraPosition, 0.0));
+vec3 v3WLightPos = vec3(g_WorldMatrix * vec4(v3LightPos, 0.0));
+vec3 v3WCameraPos = vec3(g_WorldMatrix * vec4(v3CameraPos, 0.0));
+
+vec3 m_v3CameraPos = v3CameraPos;
 
 // Returns the near intersection point of a line and a sphere
 float getNearIntersection(vec3 v3Pos, vec3 v3Ray, float fDistance2, float fRadius2)
@@ -59,40 +68,20 @@ float scale(float fCos)
 
 void main(void)
 {
-  mat4 g_WorldViewProjectionMatrix = projectionMatrix * modelViewMatrix;
-
-  mat4 g_WorldMatrix = modelMatrix;
-  //g_WorldMatrix = viewMatrix;
-  g_WorldMatrix = modelViewMatrix;
-
-
-  //vec4 v4Bump = texture2D(tBump, uv);
-  //vec4 inPosition = vec4(position + normal * ((v4Bump.r - 0.5) * 0.005), 1.0);
   vec4 inPosition = vec4(position, 1.0);
   gl_Position = g_WorldViewProjectionMatrix * inPosition;
 
-
-  //vec3 v3WLightPos = vec3(g_WorldViewProjectionMatrix * vec4(v3LightPos, 0.0));
-  //vec3 v3WCameraPos = vec3(g_WorldViewProjectionMatrix * vec4(cameraPosition, 0.0));
-
-  //vec3 v3WLightPos = vec3(g_WorldViewProjectionMatrix * vec4(v3LightPos, 0.0));
-  //vec3 v3WCameraPos = vec3(g_WorldViewProjectionMatrix * vec4(cameraPosition, 0.0));
-  vec3 v3WLightPos = vec3(vec4(v3LightPos, 0.0));
-  vec3 v3WCameraPos = vec3(g_WorldViewProjectionMatrix * vec4(cameraPosition, 0.0));
-
   // Get the ray from the camera to the vertex and its length (which is the far point of the ray passing through the atmosphere)
-  //vec3 v3Pos = vec3(g_WorldMatrix * inPosition);
-  //vec3 v3Pos = vec3(g_WorldMatrix * inPosition);
   vec3 v3Pos = vec3(g_WorldMatrix * inPosition);
   vec3 v3Ray = v3Pos - v3WCameraPos;
   float fFar = length(v3Ray);
   v3Ray /= fFar;
 
   // Calculate the closest intersection of the ray with the outer atmosphere (which is the near point of the ray passing through the atmosphere)
-  float fNear = getNearIntersection(cameraPosition, v3Ray, fCameraHeight2, fOuterRadius2);
+  float fNear = getNearIntersection(m_v3CameraPos, v3Ray, fCameraHeight2, fOuterRadius2);
 
   // Calculate the ray's starting position, then calculate its scattering offset
-  vec3 v3Start = cameraPosition + v3Ray * fNear;
+  vec3 v3Start = m_v3CameraPos + v3Ray * fNear;
   fFar -= fNear;
 
   // Calculate the ray's start and end positions in the atmosphere, then calculate its scattering offset
@@ -134,8 +123,8 @@ void main(void)
 
   // scattering colors
   v4RayleighColor = vec4(clamp(v3FrontColor, 0.0, 3.0) * (v3InvWavelength * fKrESun + fKmESun), 0.0);
-
   v4MieColor = vec4(clamp(v3Attenuate, 0.0, 3.0), 0.0);
+
   //v4MieColor = vec4(v3SampleRay, 1.0);
   texCoord  = uv;
 }

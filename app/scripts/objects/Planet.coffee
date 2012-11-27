@@ -131,16 +131,16 @@ define [
           @mGroundFromSpace.uniforms.Time.value = time
           @mGroundFromSpace.uniforms.fCameraHeight.value = cameraHeight
           @mGroundFromSpace.uniforms.fCameraHeight2.value = cameraHeight * cameraHeight
-          #@mGroundFromSpace.uniforms.v3CameraPos.value = @camera.position
+          @mGroundFromSpace.uniforms.v3CameraPos.value = @camera.position
 
       createBaseUniforms: () =>
         @baseUniforms =
           Time:
             type: 'f'
             value: 0.0
-          #v3CameraPos:
-          #  type: 'v3'
-          #  value: @camera.position
+          v3CameraPos:
+            type: 'v3'
+            value: @camera.position
           fCameraHeight:
             type: 'f'
             value: 206.0

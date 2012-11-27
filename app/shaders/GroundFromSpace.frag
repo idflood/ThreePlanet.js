@@ -18,8 +18,9 @@ void main (void)
   vec4 colorNight = texture2D(tNight, texCoord);
 
   vec4 nightEmit = colorNight * (1.0 - fLightIntensity);
-  v4Diffuse = (v4RayleighColor * fLightIntensity + v4Diffuse * v4MieColor * fLightIntensity) * fLightIntensity + nightEmit;
+  //v4Diffuse = (v4RayleighColor * fLightIntensity + v4Diffuse * v4MieColor * fLightIntensity) * fLightIntensity + nightEmit;
 
-  gl_FragColor = 1.0 - exp(-fExposure * (v4RayleighColor + v4Diffuse * v4MieColor));
+  gl_FragColor = 1.0 - exp(-fExposure * (v4RayleighColor + v4Diffuse * v4MieColor) * fLightIntensity);
   gl_FragColor.a = 1.0;
+  //gl_FragColor.a = gl_FragColor.b;
 }
