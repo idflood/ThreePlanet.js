@@ -83,7 +83,7 @@ define [
 
         @controls = new THREE.TrackballControls( @camera, @renderer.domElement )
         @controls.rotateSpeed = 1.0
-        @controls.zoomSpeed = 1.2
+        @controls.zoomSpeed = 0.02
         @controls.panSpeed = 0.2
 
         @controls.noZoom = false

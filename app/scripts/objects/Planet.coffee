@@ -19,12 +19,13 @@ define [
 
     PlanetShaderUtil: class PlanetShaderUtil
       constructor: (@innerRadius, @position) ->
-        @nSamples = 3     # Number of sample rays to use in integral equation
+        @nSamples = 2     # Number of sample rays to use in integral equation
         @Kr = 0.0025      # Rayleigh scattering constant
         @Km = 0.0015      # Mie scattering constant
-        @ESun = 10.0      # Sun brightness constant
+        @ESun = 15.0      # Sun brightness constant
         @exposure = 2.0
-        @wavelength = new THREE.Vector3(0.731, 0.612, 0.455)
+        #@wavelength = new THREE.Vector3(0.731, 0.612, 0.455)
+        @wavelength = new THREE.Vector3(0.650, 0.570, 0.475)
         @G = -0.99
         @invWavelength4 = new THREE.Vector3()
         @scaleDepth = 0.25
@@ -32,7 +33,8 @@ define [
         @updateCalculations()
 
       updateCalculations: () =>
-        @scale = 1.0 / ((@innerRadius * 1.025) - @innerRadius)
+        @outerRadius = @innerRadius * 1.025
+        @scale = 1.0 / (@outerRadius - @innerRadius)
         @scaleOverScaleDepth = @scale / @scaleDepth
         @KrESun = @Kr * @ESun
         @KmESun = @Km * @ESun
@@ -43,7 +45,7 @@ define [
         @invWavelength4.y = 1.0 / Math.pow(@wavelength.y, 4.0)
         @invWavelength4.z = 1.0 / Math.pow(@wavelength.z, 4.0)
 
-        @outerRadius = @innerRadius * 1.025
+
 
     Planet: class Planet extends THREE.Object3D
       constructor: (@radius, @pos, @sun, @camera) ->
@@ -97,7 +99,12 @@ define [
         cameraLocation = @camera.position
         planetToCamera = cameraLocation.clone().subSelf(@pos)
         cameraHeight = planetToCamera.length()
+        cameraHeight = @pos.distanceToSquared(@camera.position)
         lightPosNormalized = @sun.position.clone().normalize()
+
+        dSquared1 = @sun.position.clone().subSelf(@pos).lengthSq()
+        lightDistance = @pos.distanceToSquared(@sun.position)
+        lightpos = @sun.position.clone().divideScalar(lightDistance)
 
         if @meshClouds
           @meshClouds.rotation.y = time * 0.002
@@ -127,7 +134,7 @@ define [
         #@mSkyFromSpace.uniforms.v3CameraPos.value = @camera.position
 
         if @mGroundFromSpace
-          @mGroundFromSpace.uniforms.v3LightPos.value = lightPosNormalized
+          @mGroundFromSpace.uniforms.v3LightPos.value = lightpos
           @mGroundFromSpace.uniforms.Time.value = time
           @mGroundFromSpace.uniforms.fCameraHeight.value = cameraHeight
           @mGroundFromSpace.uniforms.fCameraHeight2.value = cameraHeight * cameraHeight
