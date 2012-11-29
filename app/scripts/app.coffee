@@ -25,7 +25,7 @@ define [
         @clock = new THREE.Clock()
         @scene = new THREE.Scene()
 
-        @PLANET_POSITION = new THREE.Vector3(0.001, 0.001, 0.001)
+        @PLANET_POSITION = new THREE.Vector3(0, 0, 0)
         @PLANET_RADIUS = 200.0 #km
         @lightPosition = new THREE.Vector3(0, 0, - @PLANET_RADIUS * 10)
         @LIGHT_DIRECTION = @PLANET_POSITION.clone().subSelf(@lightPosition).normalize()
@@ -58,6 +58,7 @@ define [
             @camera_dTarget = null
 
         @planet = new ThreePlanet.objects.Planet(@PLANET_RADIUS, @PLANET_POSITION, @directionalLight, @camera)
+        @planet.position = @PLANET_POSITION
         @scene.add(@planet)
 
       updateWorld: (time, delta) =>
@@ -83,7 +84,7 @@ define [
 
         @controls = new THREE.TrackballControls( @camera, @renderer.domElement )
         @controls.rotateSpeed = 1.0
-        @controls.zoomSpeed = 1.2
+        @controls.zoomSpeed = 1.1
         @controls.panSpeed = 0.2
 
         @controls.noZoom = false

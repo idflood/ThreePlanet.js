@@ -12,7 +12,7 @@ varying vec4 v4MieColor;
 // Mie phase function
 float getMiePhase(float fCos, float fCos2, float g, float g2)
 {
-   return 1.5 * ((1.0 - g2) / (2.0 + g2)) * (1.0 + fCos2) / pow(1.0 + g2 - 2.0*g*fCos, 1.5);   
+   return 1.5 * ((1.0 - g2) / (2.0 + g2)) * (1.0 + fCos2) / pow(1.0 + g2 - 2.0*g*fCos, 1.5);
 }
 
 // Rayleigh phase function
@@ -20,7 +20,7 @@ float getRayleighPhase(float fCos2)
 {
    //return 0.75 + 0.75 * fCos2;
    return 0.75 * (2.0 + 0.5 * fCos2);
-   
+
 }
 
 void main (void)
@@ -32,6 +32,9 @@ void main (void)
    color = 1.0 - exp(-fExposure * color);
    //color = vec4(1.0, 0, 0, 1.0);
 //color = v4MieColor;
+   //color = v4RayleighColor;
+
+   //color.a = 1.0;
    gl_FragColor = color;
 }
 

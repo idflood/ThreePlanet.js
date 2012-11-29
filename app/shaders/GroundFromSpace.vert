@@ -78,7 +78,7 @@ void main(void)
   v3Ray /= fFar;
 
   // Calculate the closest intersection of the ray with the outer atmosphere (which is the near point of the ray passing through the atmosphere)
-  float fNear = getNearIntersection(m_v3CameraPos, v3Ray, fCameraHeight2, fOuterRadius2);
+  float fNear = getNearIntersection(v3CameraPos, v3Ray, fCameraHeight2, fOuterRadius2);
 
   // Calculate the ray's starting position, then calculate its scattering offset
   vec3 v3Start = m_v3CameraPos + v3Ray * fNear;
@@ -99,8 +99,8 @@ void main(void)
   float fTemp = (fLightScale * fCameraScale);
 
   // Initialize the scattering loop variables
-  //float fSampleLength = length(v3Pos) / fSamples;
-  float fSampleLength = fFar / fSamples;
+  float fSampleLength = length(v3Pos) / fSamples;
+  //float fSampleLength = fFar / fSamples;
   float fScaledLength = fSampleLength * fScale;
   vec3 v3SampleRay = v3Ray * fSampleLength;
   vec3 v3SamplePoint = v3Start + v3SampleRay * 0.5;

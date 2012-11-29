@@ -69,7 +69,7 @@ define [
         @atmosphere = new THREE.Mesh( @sphere2, @mSkyFromSpace )
         @atmosphere.scale.set(@planetUtil.outerRadius, @planetUtil.outerRadius, @planetUtil.outerRadius)
         @atmosphere.flipSided = true
-        #@add(@atmosphere)
+        @add(@atmosphere)
         #return
 
         #@mGroundFromSpace = new THREE.MeshPhongMaterial( { color: 0xffffff, map: THREE.ImageUtils.loadTexture( 'textures/earth.jpg' ) } )
@@ -95,9 +95,17 @@ define [
 
       update: (time, delta) =>
         cameraLocation = @camera.position
-        planetToCamera = cameraLocation.clone().subSelf(@pos)
+        #planetToCamera = cameraLocation.clone().subSelf(@pos)
+        planetToCamera = new THREE.Vector3().sub( cameraLocation, @pos )
         cameraHeight = planetToCamera.length()
         lightPosNormalized = @sun.position.clone().normalize()
+
+        #cameraHeight = @pos.distanceToSquared(@camera.position)
+        #lightPosNormalized = @sun.position.clone().normalize()
+
+        #dSquared1 = @sun.position.clone().subSelf(@pos).lengthSq()
+        #lightDistance = @pos.distanceToSquared(@sun.position)
+        #lightpos = @sun.position.clone().divideScalar(lightDistance)
 
         if @meshClouds
           @meshClouds.rotation.y = time * 0.002
@@ -118,13 +126,14 @@ define [
         @mSkyFromSpace.uniforms.fCameraHeight.value = cameraHeight
         @mSkyFromSpace.uniforms.fCameraHeight2.value = cameraHeight * cameraHeight
         @mSkyFromSpace.uniforms.v3InvWavelength.value = @planetUtil.invWavelength4
+        @mSkyFromSpace.uniforms.v3CameraPos.value = @camera.position
 
         @mSkyFromAtmosphere.uniforms.v3LightPos.value = lightPosNormalized
         @mSkyFromAtmosphere.uniforms.fCameraHeight.value = cameraHeight
         @mSkyFromAtmosphere.uniforms.fCameraHeight2.value = cameraHeight * cameraHeight
         @mSkyFromAtmosphere.uniforms.v3InvWavelength.value = @planetUtil.invWavelength4
         #@mSkyFromAtmosphere.uniforms.v3CameraPos.value = @camera.position
-        #@mSkyFromSpace.uniforms.v3CameraPos.value = @camera.position
+
 
         if @mGroundFromSpace
           @mGroundFromSpace.uniforms.v3LightPos.value = lightPosNormalized
