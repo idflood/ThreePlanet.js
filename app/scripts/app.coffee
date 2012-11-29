@@ -127,7 +127,7 @@ define [
         @composer = new THREE.EffectComposer( @renderer, @renderTarget )
         @composer.addPass( @renderModel )
         @composer.addPass( @effectBloom )
-        @composer.addPass( @effectFilm )
+        #@composer.addPass( @effectFilm )
         @composer.addPass( @effectVignette )
 
         # make the last pass render to screen so that we can see something
@@ -157,13 +157,14 @@ define [
         time = @clock.getElapsedTime() * 10
 
         requestAnimationFrame( @animate )
+        if @controls
+          @controls.update()
         @updateWorld(time, delta)
         @render(time, delta)
 
       render: (time, delta) =>
         @renderer.clear()
-        if @controls
-          @controls.update()
+
         if @composer
           @composer.render(delta)
         else

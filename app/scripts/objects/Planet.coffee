@@ -54,7 +54,7 @@ define [
         @planetUtil = new ThreePlanet.objects.PlanetShaderUtil(@radius, @pos)
 
         # create 2 geometries since they will have different buffers
-        details = 40
+        details = 60
         #@sphere = new THREE.SphereGeometry( 1, details * 2 * 4, details * 4)
         @sphere = new THREE.SphereGeometry( 1, 256, 128)
         @sphere.computeTangents()
@@ -70,8 +70,8 @@ define [
         @mSkyFromSpace.blending = THREE.AdditiveAlphaBlending
         @atmosphere = new THREE.Mesh( @sphere2, @mSkyFromSpace )
         @atmosphere.scale.set(@planetUtil.outerRadius, @planetUtil.outerRadius, @planetUtil.outerRadius)
-        @atmosphere.flipSided = true
-        #@add(@atmosphere)
+        #@atmosphere.flipSided = true
+        @add(@atmosphere)
         #return
 
         #@mGroundFromSpace = new THREE.MeshPhongMaterial( { color: 0xffffff, map: THREE.ImageUtils.loadTexture( 'textures/earth.jpg' ) } )
@@ -97,13 +97,9 @@ define [
 
       update: (time, delta) =>
         cameraLocation = @camera.position
-        planetToCamera = cameraLocation.clone().subSelf(@pos)
-        cameraHeight = planetToCamera.length()
-        cameraHeight = @pos.distanceToSquared(@camera.position)
-        lightPosNormalized = @sun.position.clone().normalize()
 
-        dSquared1 = @sun.position.clone().subSelf(@pos).lengthSq()
-        lightDistance = @pos.distanceToSquared(@sun.position)
+        cameraDistance = @pos.distanceTo(@camera.position)
+        lightDistance = @pos.distanceTo(@sun.position)
         lightpos = @sun.position.clone().divideScalar(lightDistance)
 
         if @meshClouds
@@ -115,33 +111,33 @@ define [
         #if cameraHeight < r + 1.0
         #  @camera.position = planetToCamera.clone().normalize().multiplyScalar(r + 1.0)
 
-        if cameraHeight > @planetUtil.outerRadius
+        if cameraDistance > @planetUtil.outerRadius
           @atmosphere.material = @mSkyFromSpace
           #@atmosphere.material = @mSkyFromAtmosphere
         else
           @atmosphere.material = @mSkyFromAtmosphere
           #console.log "atmo"
-        @mSkyFromSpace.uniforms.v3LightPos.value = lightPosNormalized
-        @mSkyFromSpace.uniforms.fCameraHeight.value = cameraHeight
-        @mSkyFromSpace.uniforms.fCameraHeight2.value = cameraHeight * cameraHeight
+        @mSkyFromSpace.uniforms.v3LightPos.value = lightpos
+        @mSkyFromSpace.uniforms.fCameraHeight.value = cameraDistance
+        @mSkyFromSpace.uniforms.fCameraHeight2.value = cameraDistance * cameraDistance
         @mSkyFromSpace.uniforms.v3InvWavelength.value = @planetUtil.invWavelength4
 
-        @mSkyFromAtmosphere.uniforms.v3LightPos.value = lightPosNormalized
-        @mSkyFromAtmosphere.uniforms.fCameraHeight.value = cameraHeight
-        @mSkyFromAtmosphere.uniforms.fCameraHeight2.value = cameraHeight * cameraHeight
+        @mSkyFromAtmosphere.uniforms.v3LightPos.value = lightpos
+        @mSkyFromAtmosphere.uniforms.fCameraHeight.value = cameraDistance
+        @mSkyFromAtmosphere.uniforms.fCameraHeight2.value = cameraDistance * cameraDistance
         @mSkyFromAtmosphere.uniforms.v3InvWavelength.value = @planetUtil.invWavelength4
-        #@mSkyFromAtmosphere.uniforms.v3CameraPos.value = @camera.position
-        #@mSkyFromSpace.uniforms.v3CameraPos.value = @camera.position
+        #@mSkyFromAtmosphere.uniforms.v3CameraPos.value = cameraLocation
+        @mSkyFromSpace.uniforms.v3CameraPos.value = cameraLocation
 
         if @mGroundFromSpace
           @mGroundFromSpace.uniforms.v3LightPos.value = lightpos
           @mGroundFromSpace.uniforms.Time.value = time
-          @mGroundFromSpace.uniforms.fCameraHeight.value = cameraHeight
-          @mGroundFromSpace.uniforms.fCameraHeight2.value = cameraHeight * cameraHeight
+          @mGroundFromSpace.uniforms.fCameraHeight.value = cameraDistance
+          @mGroundFromSpace.uniforms.fCameraHeight2.value = cameraDistance * cameraDistance
           # Need to pass the camera position since three.js already pass it with matrixWorld applied
           # # var position = camera.matrixWorld.getPosition();
           # # _gl.uniform3f( p_uniforms.cameraPosition, position.x, position.y, position.z );
-          @mGroundFromSpace.uniforms.v3CameraPos.value = @camera.position
+          @mGroundFromSpace.uniforms.v3CameraPos.value = cameraLocation
 
       createBaseUniforms: () =>
         @baseUniforms =
@@ -228,6 +224,8 @@ define [
           uniforms: uniformsBase
           vertexShader: SkyFromSpaceVert
           fragmentShader: SkyFromSpaceFrag
+          side: THREE.BackSide
+          shading: THREE.SmoothShading
           #depthWrite: false
           #shading: THREE.FlatShading
 
@@ -255,6 +253,7 @@ define [
           uniforms: uniformsBase
           vertexShader: GroundFromSpaceVert
           fragmentShader: GroundFromSpaceFrag
+          shading: THREE.SmoothShading
 
 
 

@@ -22,6 +22,8 @@ void main (void)
 
   vec4 f4Color = primary_color + v4Diffuse * secondary_color + (colorNight*(1.0- secondary_color))*0.2;
 
-  f4Color = primary_color;
+  //f4Color = primary_color;
   gl_FragColor = 1.0 - exp(f4Color * -fExposure);
+
+  gl_FragColor.a = 1.0;
 }

@@ -65,7 +65,8 @@ void main(void)
   gl_Position = g_WorldViewProjectionMatrix * inPosition;
 
   // Get the ray from the camera to the vertex and its length (which is the far point of the ray passing through the atmosphere)
-  vec3 v3Pos = position.xyz;
+  vec3 v3Pos = vec3(g_WorldMatrix * inPosition);
+  //vec3 v3Pos = position.xyz;
   vec3 v3Ray = v3Pos - v3CameraPos;
   float fFar = length(v3Ray);
   v3Ray /= fFar;
