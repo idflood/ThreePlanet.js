@@ -102,6 +102,11 @@ define [
         lightDistance = @pos.distanceTo(@sun.position)
         lightpos = @sun.position.clone().divideScalar(lightDistance)
 
+        planetToCamera = new THREE.Vector3().sub(@camera.position, @position)
+        r = @planetUtil.innerRadius;
+        if cameraDistance < r + 1.0
+            @camera.position = planetToCamera.normalize().multiplyScalar(r + 1.0)
+
         if @meshClouds
           @meshClouds.rotation.y = time * 0.002
         #console.log cameraHeight
