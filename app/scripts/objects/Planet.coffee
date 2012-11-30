@@ -24,22 +24,25 @@ define [
         @Km = 0.0015      # Mie scattering constant
         @ESun = 15.0      # Sun brightness constant
         @exposure = 2.0
-        #@wavelength = new THREE.Vector3(0.731, 0.612, 0.455)
-        @wavelength = new THREE.Vector3(0.650, 0.570, 0.475)
+        @wavelength = new THREE.Vector3()
+        @wavelengthColor = [165, 145, 121]
         @G = -0.99
         @invWavelength4 = new THREE.Vector3()
         @scaleDepth = 0.25
-        @rotationSpeed = 0.02
+        @outerRadius = @innerRadius * 1.025
         @updateCalculations()
 
       updateCalculations: () =>
-        @outerRadius = @innerRadius * 1.025
         @scale = 1.0 / (@outerRadius - @innerRadius)
         @scaleOverScaleDepth = @scale / @scaleDepth
         @KrESun = @Kr * @ESun
         @KmESun = @Km * @ESun
         @Kr4PI = @Kr * 4.0 * Math.PI
         @Km4PI = @Km * 4.0 * Math.PI
+
+        @wavelength.x = @wavelengthColor[0] / 255
+        @wavelength.y = @wavelengthColor[1] / 255
+        @wavelength.z = @wavelengthColor[2] / 255
 
         @invWavelength4.x = 1.0 / Math.pow(@wavelength.x, 4.0)
         @invWavelength4.y = 1.0 / Math.pow(@wavelength.y, 4.0)
@@ -54,15 +57,14 @@ define [
         @planetUtil = new ThreePlanet.objects.PlanetShaderUtil(@radius, @pos)
 
         # create 2 geometries since they will have different buffers
-        details = 60
+        details = 128
         #@sphere = new THREE.SphereGeometry( 1, details * 2 * 4, details * 4)
-        @sphere = new THREE.SphereGeometry( 1, 256, 128)
+        @sphere = new THREE.SphereGeometry( 1, details * 2, details)
         @sphere.computeTangents()
         @sphere2 = new THREE.SphereGeometry( 1, details * 2, details )
 
         @createBaseUniforms()
 
-        #@mSkyFromSpace = new THREE.MeshPhongMaterial( { color: 0x00ff00 } )
         @createShaderSkyFromSpace()
 
         @createShaderSkyFromAtmosphere()
@@ -70,11 +72,8 @@ define [
         @mSkyFromSpace.blending = THREE.AdditiveAlphaBlending
         @atmosphere = new THREE.Mesh( @sphere2, @mSkyFromSpace )
         @atmosphere.scale.set(@planetUtil.outerRadius, @planetUtil.outerRadius, @planetUtil.outerRadius)
-        #@atmosphere.flipSided = true
         @add(@atmosphere)
-        #return
 
-        #@mGroundFromSpace = new THREE.MeshPhongMaterial( { color: 0xffffff, map: THREE.ImageUtils.loadTexture( 'textures/earth.jpg' ) } )
         @createShaderGroundFromSpace()
 
         @ground = new THREE.Mesh( @sphere, @mGroundFromSpace )
@@ -96,7 +95,10 @@ define [
         @add(@meshClouds)
 
       update: (time, delta) =>
-        cameraLocation = @camera.position
+        @atmosphere.scale.set(@planetUtil.outerRadius, @planetUtil.outerRadius, @planetUtil.outerRadius)
+        @ground.scale.set(@planetUtil.innerRadius, @planetUtil.innerRadius, @planetUtil.innerRadius)
+
+        @planetUtil.updateCalculations()
 
         cameraDistance = @pos.distanceTo(@camera.position)
         lightDistance = @pos.distanceTo(@sun.position)
@@ -109,12 +111,6 @@ define [
 
         if @meshClouds
           @meshClouds.rotation.y = time * 0.002
-        #console.log cameraHeight
-        #console.log @planetUtil.outerRadius
-        # easy collision detection
-        #r = @planetUtil.innerRadius
-        #if cameraHeight < r + 1.0
-        #  @camera.position = planetToCamera.clone().normalize().multiplyScalar(r + 1.0)
 
         if cameraDistance > @planetUtil.outerRadius
           @atmosphere.material = @mSkyFromSpace
@@ -131,8 +127,8 @@ define [
         @mSkyFromAtmosphere.uniforms.fCameraHeight.value = cameraDistance
         @mSkyFromAtmosphere.uniforms.fCameraHeight2.value = cameraDistance * cameraDistance
         @mSkyFromAtmosphere.uniforms.v3InvWavelength.value = @planetUtil.invWavelength4
-        #@mSkyFromAtmosphere.uniforms.v3CameraPos.value = cameraLocation
-        @mSkyFromSpace.uniforms.v3CameraPos.value = cameraLocation
+
+        @updateCommonUniforms(@mSkyFromSpace)
 
         if @mGroundFromSpace
           @mGroundFromSpace.uniforms.v3LightPos.value = lightpos
@@ -142,7 +138,29 @@ define [
           # Need to pass the camera position since three.js already pass it with matrixWorld applied
           # # var position = camera.matrixWorld.getPosition();
           # # _gl.uniform3f( p_uniforms.cameraPosition, position.x, position.y, position.z );
-          @mGroundFromSpace.uniforms.v3CameraPos.value = cameraLocation
+          @mGroundFromSpace
+
+          @updateCommonUniforms(@mGroundFromSpace)
+
+      updateCommonUniforms: (shader) =>
+        shader.uniforms.v3CameraPos.value = @camera.position
+        shader.uniforms.fExposure.value = @planetUtil.exposure
+        shader.uniforms.fKrESun.value = @planetUtil.KrESun
+        shader.uniforms.fKmESun.value = @planetUtil.KmESun
+
+        shader.uniforms.fKr4PI.value = @planetUtil.Kr4PI
+        shader.uniforms.fKm4PI.value = @planetUtil.Km4PI
+
+        shader.uniforms.fScaleDepth.value = @planetUtil.scaleDepth
+        shader.uniforms.fScaleOverScaleDepth.value = @planetUtil.scaleOverScaleDepth
+
+        shader.uniforms.fOuterRadius.value = @planetUtil.outerRadius
+        shader.uniforms.fInnerRadius.value = @planetUtil.innerRadius
+        shader.uniforms.fOuterRadius2.value = @planetUtil.outerRadius * @planetUtil.outerRadius
+
+        shader.uniforms.fg.value = @planetUtil.G
+        shader.uniforms.fg2.value = @planetUtil.G * @planetUtil.G
+        shader.uniforms.fScale.value = @planetUtil.scale
 
       createBaseUniforms: () =>
         @baseUniforms =
@@ -231,7 +249,7 @@ define [
           fragmentShader: SkyFromSpaceFrag
           side: THREE.BackSide
           shading: THREE.SmoothShading
-          #depthWrite: false
+          depthWrite: false
           #shading: THREE.FlatShading
 
       createShaderGroundFromSpace: () =>

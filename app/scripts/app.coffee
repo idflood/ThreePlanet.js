@@ -16,7 +16,8 @@ define [
   'MaskPass',
   'CopyShader',
   'objects/Stars',
-  'objects/Planet'
+  'objects/Planet',
+  'vendor/dat.gui.min'
 ],
 () ->
   namespace "ThreePlanet",
@@ -43,6 +44,25 @@ define [
         $(window).bind "resize", (e) => @onResize()
 
         @animate()
+
+        gui = new dat.GUI
+          width: 300
+          hide: true
+        basic = gui.addFolder("Basic")
+        basic.add(@planet.planetUtil, "exposure", 1.0, 4)
+        basic.add(@planet.planetUtil, "innerRadius")
+        basic.add(@planet.planetUtil, "outerRadius")
+
+        advanced = gui.addFolder("Advanced")
+        advanced.addColor(@planet.planetUtil, "wavelengthColor")
+        advanced.add(@planet.planetUtil, "scaleDepth", 0, 2)
+        advanced.add(@planet.planetUtil, "Kr", 0, 0.01)
+        advanced.add(@planet.planetUtil, "Km", 0, 0.1)
+        # dat.gui Issue with negative number (G is negative)
+        # http://code.google.com/p/dat-gui/issues/detail?id=23
+        #advanced.add(@planet.planetUtil, "G")
+
+        #gui.close()
 
       createWorld: () =>
         @stars = new ThreePlanet.objects.Stars()
@@ -133,7 +153,7 @@ define [
         @effectBloom = new THREE.BloomPass(0.7)
         @effectFilm = new THREE.FilmPass(0.25, 0.025, 648, false)
         @effectVignette = new THREE.ShaderPass( THREE.VignetteShader )
-        @effectVignette.uniforms['darkness'].value = 2.5
+        @effectVignette.uniforms['darkness'].value = 1.5
 
         renderTargetParameters = { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.ARGBFormat, stencilBuffer: false }
         @renderTarget = new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, renderTargetParameters )
