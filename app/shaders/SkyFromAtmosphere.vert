@@ -2,7 +2,7 @@
 
 //uniform mat4 g_WorldViewProjectionMatrix;
 //uniform mat4 g_WorldMatrix;
-//uniform vec3 v3CameraPos;	// The camera's current position
+uniform vec3 v3CameraPos;	// The camera's current position
 uniform vec3 v3LightPos;	// The direction vector to the light source
 uniform vec3 v3InvWavelength;	// 1 / pow(wavelength, 4) for the red, green, and blue channels
 uniform float fCameraHeight;	// The camera's current height
@@ -21,15 +21,21 @@ uniform float fScaleOverScaleDepth; // fScale / fScaleDepth
 //uniform int nSamples;
 uniform float fSamples;
 //attribute vec4 inPosition;
-varying vec3 v3Direction;
-varying vec4 v4RayleighColor;
-varying vec4 v4MieColor;
+//varying vec3 v3Direction;
+//varying vec4 v4RayleighColor;
+//varying vec4 v4MieColor;
 
-mat4 g_WorldMatrix = modelViewMatrix;
 mat4 g_WorldViewProjectionMatrix = projectionMatrix * modelViewMatrix;
+mat4 g_WorldMatrix = modelMatrix;
 
 // assign as constant since "Loop index cannot be compared with non-constant expression"
-const int nSamples = 3;
+const int nSamples = 2;
+
+varying vec3 v3Direction, v, Vert;
+varying float depth;
+
+varying vec4 primary_color;
+varying vec4 secondary_color;
 
 float scale(float fCos)
 {
@@ -40,24 +46,23 @@ float scale(float fCos)
 void main(void)
 {
   vec4 inPosition = vec4(position, 1.0);
-  /*mat4 g_WorldMatrix = modelMatrix;
-  g_WorldMatrix = viewMatrix;
-  g_WorldMatrix = modelViewMatrix;
-  mat4 g_WorldViewProjectionMatrix = projectionMatrix * modelViewMatrix;
-  gl_Position = g_WorldViewProjectionMatrix * inPosition;*/
+  gl_Position = g_WorldViewProjectionMatrix * inPosition;
 
   // Get the ray from the camera to the vertex, and its length (which is the far point of the ray passing through the atmosphere)
 	vec3 v3Pos = vec3(g_WorldMatrix * inPosition);
-	vec3 v3Ray = v3Pos - cameraPosition;
+	vec3 v3Ray = v3Pos - v3CameraPos;
 	float fFar = length(v3Ray);
 	v3Ray /= fFar;
 
 	// Calculate the ray's starting position, then calculate its scattering offset
-	vec3 v3Start = cameraPosition;
+	vec3 v3Start = v3CameraPos;
 	float fHeight = length(v3Start);
 	float fDepth = exp(fScaleOverScaleDepth * (fInnerRadius - fCameraHeight));
 	float fStartAngle = dot(v3Ray, v3Start) / fHeight;
 	float fStartOffset = fDepth*scale(fStartAngle);
+
+  float fStartDepth = exp(fScaleOverScaleDepth * (fInnerRadius - fCameraHeight));
+  depth = clamp(fStartDepth*scale(fStartAngle),0.0,1.0);
 
 	// Initialize the scattering loop variables
 	float fSampleLength = fFar / fSamples;
@@ -67,6 +72,7 @@ void main(void)
 
 	// Now loop through the sample rays
 	vec3 v3FrontColor = vec3(0.0, 0.0, 0.0);
+  vec3 v3Attenuate = vec3(0.0, 0.0, 0.0);
 	for(int i=0; i<nSamples; i++)
 	{
 		float fHeight = length(v3SamplePoint);
@@ -79,12 +85,8 @@ void main(void)
 		v3SamplePoint += v3SampleRay;
 	}
 
-        // The "sun" factor brightens the atmosphere trying to cover the starfield
-        //float sun = 0.90 + 2.0 * exp(-pow(fHeight,5.0)/pow(fOuterRadius,5.0));
-        float sun = 1.0 + 6.50 * exp(-fHeight*fHeight/fOuterRadius*fOuterRadius);
+  secondary_color = vec4(v3FrontColor * fKmESun, 1.0);
+  primary_color = vec4(v3FrontColor * (v3InvWavelength * fKrESun), 1.0);
 
-	// Finally, scale the Mie and Rayleigh colors and set up the varying variables for the pixel shader
-        v4MieColor = vec4(v3FrontColor * fKmESun, 1.0);
-        v4RayleighColor = vec4(v3FrontColor * (v3InvWavelength * fKrESun * sun), 1.0);
-	v3Direction = cameraPosition - v3Pos;
+	v3Direction = v3CameraPos - v3Pos;
 }

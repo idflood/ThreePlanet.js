@@ -90,7 +90,7 @@ define [
           uniforms: shader.uniforms
           side: THREE.BackSide
         mesh = new THREE.Mesh( new THREE.CubeGeometry( 10000, 10000, 10000 ), material )
-        @scene.add( mesh )
+        #@scene.add( mesh )
 
       updateWorld: (time, delta) =>
         @lightPosition.z = Math.cos(time * 0.05) * (@PLANET_RADIUS * 10)
@@ -121,10 +121,10 @@ define [
         @camera1.position.z = 0
         @camera1.lookAt(@PLANET_POSITION)
 
-        @camera2 = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 0.1, 10000 )
+        @camera2 = new THREE.PerspectiveCamera( 80, window.innerWidth / window.innerHeight, 0.1, 10000 )
         @scene.add( @camera2 )
         @camera2.position = new THREE.Vector3(-67.54433193947916, 134.44195702074728, -134.0052727111125)
-        @camera2.rotation = new THREE.Vector3(-0.15970077607703323, -1.1082801890328748, 1.0194414648884262)
+        @camera2.rotation = new THREE.Vector3(0.2, -0.9, 1.01)
 
         @currentCamera = @camera1
 
@@ -156,7 +156,7 @@ define [
 
         @composer = new THREE.EffectComposer( @renderer, @renderTarget )
         @composer.addPass( @renderModel )
-        @composer.addPass( @effectBloom )
+        #@composer.addPass( @effectBloom )
         @composer.addPass( @effectFilm )
         @composer.addPass( @effectVignette )
 

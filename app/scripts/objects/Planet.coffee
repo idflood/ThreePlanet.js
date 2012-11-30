@@ -122,13 +122,13 @@ define [
         @mSkyFromSpace.uniforms.fCameraHeight.value = cameraDistance
         @mSkyFromSpace.uniforms.fCameraHeight2.value = cameraDistance * cameraDistance
         @mSkyFromSpace.uniforms.v3InvWavelength.value = @planetUtil.invWavelength4
+        @updateCommonUniforms(@mSkyFromSpace)
 
         @mSkyFromAtmosphere.uniforms.v3LightPos.value = lightpos
         @mSkyFromAtmosphere.uniforms.fCameraHeight.value = cameraDistance
         @mSkyFromAtmosphere.uniforms.fCameraHeight2.value = cameraDistance * cameraDistance
         @mSkyFromAtmosphere.uniforms.v3InvWavelength.value = @planetUtil.invWavelength4
-
-        @updateCommonUniforms(@mSkyFromSpace)
+        @updateCommonUniforms(@mSkyFromAtmosphere)
 
         if @mGroundFromSpace
           @mGroundFromSpace.uniforms.v3LightPos.value = lightpos
@@ -236,6 +236,8 @@ define [
           uniforms: uniformsBase
           vertexShader: SkyFromAtmosphereVert
           fragmentShader: SkyFromAtmosphereFrag
+          side: THREE.BackSide
+          #depthWrite: false
           #depthWrite: false
           #shading: THREE.FlatShading
 
