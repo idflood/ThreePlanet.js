@@ -7,9 +7,15 @@ define [
   'text!../../../shaders/SkyFromAtmosphere.frag',
   'text!../../../shaders/GroundFromSpace.vert',
   'text!../../../shaders/GroundFromSpace.frag',
+  'text!../../../shaders/GroundFromAtmosphere.vert',
+  'text!../../../shaders/GroundFromAtmosphere.frag',
   'jquery',
   'vendor/namespace',
-], (_, Backbone, SkyFromSpaceVert, SkyFromSpaceFrag, SkyFromAtmosphereVert, SkyFromAtmosphereFrag, GroundFromSpaceVert, GroundFromSpaceFrag) ->
+], (_, Backbone,
+  SkyFromSpaceVert, SkyFromSpaceFrag,
+  SkyFromAtmosphereVert, SkyFromAtmosphereFrag,
+  GroundFromSpaceVert, GroundFromSpaceFrag,
+  GroundFromAtmosphereVert, GroundFromAtmosphereFrag) ->
   ## Planet
 
   namespace "ThreePlanet.objects",
@@ -66,6 +72,7 @@ define [
         @createShaderSkyFromSpace()
         @createShaderGroundFromSpace()
         @createShaderSkyFromAtmosphere()
+        @createShaderGroundFromAtmosphere()
 
         @mSkyFromSpace.blending = THREE.AdditiveAlphaBlending
         @mSkyFromAtmosphere.blending = THREE.AdditiveAlphaBlending
@@ -113,18 +120,17 @@ define [
 
         if @cameraDistance > @planetUtil.outerRadius
           @atmosphere.material = @mSkyFromSpace
+          @ground.material = @mGroundFromSpace
           #@atmosphere.material = @mSkyFromAtmosphere
         else
           @atmosphere.material = @mSkyFromAtmosphere
+          @ground.material = @mGroundFromAtmosphere
           #console.log "atmo"
 
-        @mSkyFromSpace.uniforms.v3InvWavelength.value = @planetUtil.invWavelength4
         @updateCommonUniforms(@mSkyFromSpace)
-
-        @mSkyFromAtmosphere.uniforms.v3InvWavelength.value = @planetUtil.invWavelength4
         @updateCommonUniforms(@mSkyFromAtmosphere)
-
         @updateCommonUniforms(@mGroundFromSpace)
+        @updateCommonUniforms(@mGroundFromAtmosphere)
 
       updateCommonUniforms: (shader) =>
         shader.uniforms.v3LightPos.value = @lightpos
@@ -138,6 +144,7 @@ define [
         shader.uniforms.fExposure.value = @planetUtil.exposure
         shader.uniforms.fKrESun.value = @planetUtil.KrESun
         shader.uniforms.fKmESun.value = @planetUtil.KmESun
+        shader.uniforms.v3InvWavelength.value = @planetUtil.invWavelength4
 
         shader.uniforms.fKr4PI.value = @planetUtil.Kr4PI
         shader.uniforms.fKm4PI.value = @planetUtil.Km4PI
@@ -259,12 +266,30 @@ define [
             value: bumpTexture
 
         $.extend(uniformsBase, uniformsGround)
-        #uniformsGround.v3CameraPos.value = @camera.position
         @mGroundFromSpace = new THREE.ShaderMaterial
           uniforms: uniformsBase
           vertexShader: GroundFromSpaceVert
           fragmentShader: GroundFromSpaceFrag
           shading: THREE.SmoothShading
 
+      createShaderGroundFromAtmosphere: () =>
+        planetTexture = THREE.ImageUtils.loadTexture("textures/earth_atmos_2048.jpg")
+        nightTexture = THREE.ImageUtils.loadTexture("textures/earthnight.jpg")
+        #bumpTexture = THREE.ImageUtils.loadTexture("textures/earthbump.png")
+        #@cloudsTexture = @planetTexture
+        uniformsBase = THREE.UniformsUtils.clone(@baseUniforms)
 
+        uniformsGround =
+          tGround:
+            type: 't'
+            value: planetTexture
+          tNight:
+            type: 't'
+            value: nightTexture
 
+        $.extend(uniformsBase, uniformsGround)
+        @mGroundFromAtmosphere = new THREE.ShaderMaterial
+          uniforms: uniformsBase
+          vertexShader: GroundFromAtmosphereVert
+          fragmentShader: GroundFromAtmosphereFrag
+          shading: THREE.SmoothShading
