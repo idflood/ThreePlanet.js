@@ -48,6 +48,13 @@ define [
         gui = new dat.GUI
           width: 300
           hide: true
+
+        @camera = "space"
+        gui.add(@, "camera", ["space", "atmosphere"]).onChange (value) =>
+          @currentCamera = switch value
+            when "atmosphere" then @camera2
+            else @camera1
+
         basic = gui.addFolder("Basic")
         basic.add(@planet.planetUtil, "exposure", 1.0, 4)
         basic.add(@planet.planetUtil, "innerRadius")
@@ -68,16 +75,7 @@ define [
         @stars = new ThreePlanet.objects.Stars()
         @scene.add(@stars)
 
-        if @camera_dPos
-          @camera.position.addSelf(@camera_dPos.clone().subSelf(@camera.position).multiplyScalar(0.1))
-          if @camera_dPos.clone().subSelf(@camera.position).length() < 0.5
-            @camera_dPos = null
-        if @camera_dTarget
-          @controls.target.addSelf(@camera_dTarget.clone().subSelf(@controls.target).multiplyScalar(0.1))
-          if @camera_dTarget.clone().subSelf(@controls.target).length() < 0.5
-            @camera_dTarget = null
-
-        @planet = new ThreePlanet.objects.Planet(@PLANET_RADIUS, @PLANET_POSITION, @directionalLight, @camera)
+        @planet = new ThreePlanet.objects.Planet(@PLANET_RADIUS, @PLANET_POSITION, @directionalLight, @currentCamera)
         @scene.add(@planet)
 
         # Skybox
@@ -99,23 +97,14 @@ define [
         @lightPosition.x = Math.sin(time * 0.05) * (@PLANET_RADIUS * 10)
         @lightPosition.y = Math.sin(time * 0.05) * (- @PLANET_RADIUS * 0.5)
 
-        if @camera_dPos
-          @camera.position.addSelf(@camera_dPos.clone().subSelf(@camera.position).multiplyScalar(0.1))
-          if @camera_dPos.clone().subSelf(@camera.position).length() < 0.5
-            @camera_dPos = null
-        if @camera_dTarget
-          @controls.target.addSelf(@camera_dTarget.clone().subSelf(@controls.target).multiplyScalar(0.1))
-          if @camera_dTarget.clone().subSelf(@controls.target).length() < 0.5
-            @camera_dTarget = null
-
         @scene.updateMatrixWorld()
         @planet.update(time, delta)
 
       createCamera: () =>
-        @camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 0.1, 10000 )
-        @scene.add( @camera )
+        @camera1 = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 0.1, 10000 )
+        @scene.add( @camera1 )
 
-        @controls = new THREE.TrackballControls( @camera, @renderer.domElement )
+        @controls = new THREE.TrackballControls( @camera1, @renderer.domElement )
         @controls.rotateSpeed = 1.0
         @controls.zoomSpeed = 1.4
         @controls.panSpeed = 0.2
@@ -127,10 +116,17 @@ define [
         @controls.dynamicDampingFactor = 0.1
         @controls.keys = [ 65, 83, 68 ]
 
-        @camera.position.set(@PLANET_POSITION.x + @PLANET_RADIUS * 2, @PLANET_POSITION.y, @PLANET_POSITION.z + @PLANET_RADIUS * 2)
-        @camera.position.x = -600
-        @camera.position.z = 0
-        @camera.lookAt(@PLANET_POSITION)
+        @camera1.position.set(@PLANET_POSITION.x + @PLANET_RADIUS * 2, @PLANET_POSITION.y, @PLANET_POSITION.z + @PLANET_RADIUS * 2)
+        @camera1.position.x = -600
+        @camera1.position.z = 0
+        @camera1.lookAt(@PLANET_POSITION)
+
+        @camera2 = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 0.1, 10000 )
+        @scene.add( @camera2 )
+        @camera2.position = new THREE.Vector3(-67.54433193947916, 134.44195702074728, -134.0052727111125)
+        @camera2.rotation = new THREE.Vector3(-0.15970077607703323, -1.1082801890328748, 1.0194414648884262)
+
+        @currentCamera = @camera1
 
       createLights: () =>
         @directionalLight = new THREE.DirectionalLight( 0xffffff, 1.15 )
@@ -149,7 +145,7 @@ define [
         @container.appendChild( @renderer.domElement )
 
         # Setup post-processing
-        @renderModel = new THREE.RenderPass(@scene, @camera)
+        @renderModel = new THREE.RenderPass(@scene, @currentCamera)
         @effectBloom = new THREE.BloomPass(0.7)
         @effectFilm = new THREE.FilmPass(0.25, 0.025, 648, false)
         @effectVignette = new THREE.ShaderPass( THREE.VignetteShader )
@@ -193,22 +189,28 @@ define [
         requestAnimationFrame( @animate )
         if @controls
           @controls.update()
+
         @updateWorld(time, delta)
         @render(time, delta)
+
 
       render: (time, delta) =>
         @renderer.clear()
 
         if @composer
+          @renderModel.camera = @currentCamera
+          @planet.camera = @currentCamera
           @composer.render(delta)
         else
-          @renderer.render(@scene, @camera)
+          @renderer.render(@scene, @currentCamera)
 
       onResize: () =>
         width = window.innerWidth
         height = window.innerHeight
-        @camera.aspect = width / height
-        @camera.updateProjectionMatrix()
+        @camera1.aspect = width / height
+        @camera2.aspect = @camera1.aspect
+        @camera1.updateProjectionMatrix()
+        @camera2.updateProjectionMatrix()
         if @controls
           @controls.screen.width = width
           @controls.screen.height = height
