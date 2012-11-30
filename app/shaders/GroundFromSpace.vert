@@ -108,12 +108,8 @@ void main(void)
   }
 
   primary_color = vec4(v3FrontColor * (v3InvWavelength * fKrESun + fKmESun), 1.0);
-  primary_color = vec4(v3FrontColor, 1.9);
+  // Calculate the attenuation factor for the ground
   secondary_color = vec4(v3Attenuate, 1.0);
-  //primary_color = vec4(v3FrontColor * (v3InvWavelength * fKrESun + fKmESun), 1.0);
-  //secondary_color = vec4(v3Attenuate, 1.0);
-
-  //v4MieColor = vec4(v3SampleRay, 1.0);
   texCoord  = uv;
 }
 

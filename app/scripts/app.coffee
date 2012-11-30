@@ -60,6 +60,20 @@ define [
         @planet = new ThreePlanet.objects.Planet(@PLANET_RADIUS, @PLANET_POSITION, @directionalLight, @camera)
         @scene.add(@planet)
 
+        # Skybox
+        r = "textures/nightCompressed/"
+        urls = [ r + "px.jpg", r + "nx.jpg", r + "py.jpg", r + "ny.jpg", r + "pz.jpg", r + "nz.jpg" ]
+        textureCube = THREE.ImageUtils.loadTextureCube( urls )
+        shader = THREE.ShaderUtils.lib[ "cube" ]
+        shader.uniforms[ "tCube" ].value = textureCube
+        material = new THREE.ShaderMaterial
+          fragmentShader: shader.fragmentShader
+          vertexShader: shader.vertexShader
+          uniforms: shader.uniforms
+          side: THREE.BackSide
+        mesh = new THREE.Mesh( new THREE.CubeGeometry( 10000, 10000, 10000 ), material )
+        @scene.add( mesh )
+
       updateWorld: (time, delta) =>
         @lightPosition.z = Math.cos(time * 0.05) * (@PLANET_RADIUS * 10)
         @lightPosition.x = Math.sin(time * 0.05) * (@PLANET_RADIUS * 10)
@@ -83,7 +97,7 @@ define [
 
         @controls = new THREE.TrackballControls( @camera, @renderer.domElement )
         @controls.rotateSpeed = 1.0
-        @controls.zoomSpeed = 0.02
+        @controls.zoomSpeed = 1.4
         @controls.panSpeed = 0.2
 
         @controls.noZoom = false
@@ -116,10 +130,10 @@ define [
 
         # Setup post-processing
         @renderModel = new THREE.RenderPass(@scene, @camera)
-        @effectBloom = new THREE.BloomPass(0.5)
+        @effectBloom = new THREE.BloomPass(0.7)
         @effectFilm = new THREE.FilmPass(0.25, 0.025, 648, false)
         @effectVignette = new THREE.ShaderPass( THREE.VignetteShader )
-        @effectVignette.uniforms['darkness'].value = 1.2
+        @effectVignette.uniforms['darkness'].value = 2.5
 
         renderTargetParameters = { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.ARGBFormat, stencilBuffer: false }
         @renderTarget = new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, renderTargetParameters )
@@ -127,7 +141,7 @@ define [
         @composer = new THREE.EffectComposer( @renderer, @renderTarget )
         @composer.addPass( @renderModel )
         @composer.addPass( @effectBloom )
-        #@composer.addPass( @effectFilm )
+        @composer.addPass( @effectFilm )
         @composer.addPass( @effectVignette )
 
         # make the last pass render to screen so that we can see something
