@@ -2,7 +2,7 @@
 (function() {
   var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
-  define(['jquery', 'vendor/namespace', 'Three', 'CopyShader', 'ConvolutionShader', 'VignetteShader', 'FilmShader', 'TrackballControls', 'EffectComposer', 'RenderPass', 'BloomPass', 'FilmPass', 'TexturePass', 'ShaderPass', 'MaskPass', 'CopyShader', 'objects/Stars', 'objects/Planet'], function() {
+  define(['jquery', 'vendor/namespace', 'Three', 'CopyShader', 'ConvolutionShader', 'VignetteShader', 'FilmShader', 'TrackballControls', 'EffectComposer', 'RenderPass', 'BloomPass', 'FilmPass', 'TexturePass', 'ShaderPass', 'MaskPass', 'CopyShader', 'objects/Stars', 'objects/Planet', 'vendor/dat.gui.min'], function() {
     var App;
     return namespace("ThreePlanet", {
       App: App = (function() {
@@ -26,7 +26,8 @@
 
           this.createWorld = __bind(this.createWorld, this);
 
-          var _this = this;
+          var advanced, basic, gui, post,
+            _this = this;
           this.clock = new THREE.Clock();
           this.scene = new THREE.Scene();
           this.PLANET_POSITION = new THREE.Vector3(0.001, 0.001, 0.001);
@@ -39,6 +40,11 @@
             clearAlpha: 1,
             antialias: true
           });
+          this.bloom = 0.6;
+          this.grain = 0.25;
+          this.scanlines = 0.025;
+          this.vignette = 1.5;
+          this.vignetteOffset = 1.0;
           this.createCamera();
           this.createLights();
           this.initRenderer();
@@ -48,27 +54,45 @@
             return _this.onResize();
           });
           this.animate();
+          gui = new dat.GUI({
+            width: 300,
+            hide: true
+          });
+          this.camera = "space";
+          gui.add(this, "camera", ["space", "atmosphere"]).onChange(function(value) {
+            return _this.currentCamera = (function() {
+              switch (value) {
+                case "atmosphere":
+                  return this.camera2;
+                default:
+                  return this.camera1;
+              }
+            }).call(_this);
+          });
+          basic = gui.addFolder("Basic");
+          basic.add(this.planet.planetUtil, "exposure", 1.0, 4);
+          basic.add(this.planet.planetUtil, "innerRadius");
+          basic.add(this.planet.planetUtil, "outerRadius");
+          advanced = gui.addFolder("Advanced");
+          advanced.addColor(this.planet.planetUtil, "wavelengthColor");
+          advanced.add(this.planet.planetUtil, "scaleDepth", 0, 2);
+          advanced.add(this.planet.planetUtil, "Kr", 0, 0.01);
+          advanced.add(this.planet.planetUtil, "Km", 0, 0.1);
+          post = gui.addFolder("Post-processing");
+          post.add(this, "bloom", 0, 2);
+          post.add(this, "grain", 0, 2);
+          post.add(this, "scanlines", 0, 1);
+          post.add(this, "vignette", 0, 2);
+          post.add(this, "vignetteOffset", 0, 2);
         }
 
         App.prototype.createWorld = function() {
           var material, mesh, r, shader, textureCube, urls;
           this.stars = new ThreePlanet.objects.Stars();
           this.scene.add(this.stars);
-          if (this.camera_dPos) {
-            this.camera.position.addSelf(this.camera_dPos.clone().subSelf(this.camera.position).multiplyScalar(0.1));
-            if (this.camera_dPos.clone().subSelf(this.camera.position).length() < 0.5) {
-              this.camera_dPos = null;
-            }
-          }
-          if (this.camera_dTarget) {
-            this.controls.target.addSelf(this.camera_dTarget.clone().subSelf(this.controls.target).multiplyScalar(0.1));
-            if (this.camera_dTarget.clone().subSelf(this.controls.target).length() < 0.5) {
-              this.camera_dTarget = null;
-            }
-          }
-          this.planet = new ThreePlanet.objects.Planet(this.PLANET_RADIUS, this.PLANET_POSITION, this.directionalLight, this.camera);
+          this.planet = new ThreePlanet.objects.Planet(this.PLANET_RADIUS, this.PLANET_POSITION, this.directionalLight, this.currentCamera);
           this.scene.add(this.planet);
-          r = "textures/night/";
+          r = "textures/nightCompressed/";
           urls = [r + "px.jpg", r + "nx.jpg", r + "py.jpg", r + "ny.jpg", r + "pz.jpg", r + "nz.jpg"];
           textureCube = THREE.ImageUtils.loadTextureCube(urls);
           shader = THREE.ShaderUtils.lib["cube"];
@@ -79,7 +103,7 @@
             uniforms: shader.uniforms,
             side: THREE.BackSide
           });
-          mesh = new THREE.Mesh(new THREE.CubeGeometry(6000, 6000, 6000), material);
+          mesh = new THREE.Mesh(new THREE.CubeGeometry(10000, 10000, 10000), material);
           return this.scene.add(mesh);
         };
 
@@ -87,26 +111,14 @@
           this.lightPosition.z = Math.cos(time * 0.05) * (this.PLANET_RADIUS * 10);
           this.lightPosition.x = Math.sin(time * 0.05) * (this.PLANET_RADIUS * 10);
           this.lightPosition.y = Math.sin(time * 0.05) * (-this.PLANET_RADIUS * 0.5);
-          if (this.camera_dPos) {
-            this.camera.position.addSelf(this.camera_dPos.clone().subSelf(this.camera.position).multiplyScalar(0.1));
-            if (this.camera_dPos.clone().subSelf(this.camera.position).length() < 0.5) {
-              this.camera_dPos = null;
-            }
-          }
-          if (this.camera_dTarget) {
-            this.controls.target.addSelf(this.camera_dTarget.clone().subSelf(this.controls.target).multiplyScalar(0.1));
-            if (this.camera_dTarget.clone().subSelf(this.controls.target).length() < 0.5) {
-              this.camera_dTarget = null;
-            }
-          }
           this.scene.updateMatrixWorld();
           return this.planet.update(time, delta);
         };
 
         App.prototype.createCamera = function() {
-          this.camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 10000);
-          this.scene.add(this.camera);
-          this.controls = new THREE.TrackballControls(this.camera, this.renderer.domElement);
+          this.camera1 = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 10000);
+          this.scene.add(this.camera1);
+          this.controls = new THREE.TrackballControls(this.camera1, this.renderer.domElement);
           this.controls.rotateSpeed = 1.0;
           this.controls.zoomSpeed = 1.4;
           this.controls.panSpeed = 0.2;
@@ -115,10 +127,15 @@
           this.controls.staticMoving = false;
           this.controls.dynamicDampingFactor = 0.1;
           this.controls.keys = [65, 83, 68];
-          this.camera.position.set(this.PLANET_POSITION.x + this.PLANET_RADIUS * 2, this.PLANET_POSITION.y, this.PLANET_POSITION.z + this.PLANET_RADIUS * 2);
-          this.camera.position.x = -600;
-          this.camera.position.z = 0;
-          return this.camera.lookAt(this.PLANET_POSITION);
+          this.camera1.position.set(this.PLANET_POSITION.x + this.PLANET_RADIUS * 2, this.PLANET_POSITION.y, this.PLANET_POSITION.z + this.PLANET_RADIUS * 2);
+          this.camera1.position.x = -600;
+          this.camera1.position.z = 0;
+          this.camera1.lookAt(this.PLANET_POSITION);
+          this.camera2 = new THREE.PerspectiveCamera(80, window.innerWidth / window.innerHeight, 0.1, 10000);
+          this.scene.add(this.camera2);
+          this.camera2.position = new THREE.Vector3(-67.54433193947916, 134.44195702074728, -134.0052727111125);
+          this.camera2.rotation = new THREE.Vector3(0.2, -0.9, 1.01);
+          return this.currentCamera = this.camera1;
         };
 
         App.prototype.createLights = function() {
@@ -134,11 +151,14 @@
           this.renderer.setSize(window.innerWidth, window.innerHeight);
           this.renderer.autoClear = false;
           this.container.appendChild(this.renderer.domElement);
-          this.renderModel = new THREE.RenderPass(this.scene, this.camera);
-          this.effectBloom = new THREE.BloomPass(0.5);
-          this.effectFilm = new THREE.FilmPass(0.25, 0.025, 648, false);
+          this.renderModel = new THREE.RenderPass(this.scene, this.currentCamera);
+          this.effectBloom = new THREE.BloomPass(this.bloom);
+          this.effectFilm = new THREE.FilmPass(this.grain, this.scanlines, 648, false);
           this.effectVignette = new THREE.ShaderPass(THREE.VignetteShader);
-          this.effectVignette.uniforms['darkness'].value = 1.2;
+          this.effectVignette.uniforms['darkness'].value = this.vignette;
+          console.log(this.effectBloom);
+          console.log(this.effectFilm.uniforms);
+          console.log(this.effectVignette.uniforms);
           renderTargetParameters = {
             minFilter: THREE.LinearFilter,
             magFilter: THREE.LinearFilter,
@@ -149,6 +169,7 @@
           this.composer = new THREE.EffectComposer(this.renderer, this.renderTarget);
           this.composer.addPass(this.renderModel);
           this.composer.addPass(this.effectBloom);
+          this.composer.addPass(this.effectFilm);
           this.composer.addPass(this.effectVignette);
           return this.effectVignette.renderToScreen = true;
         };
@@ -176,6 +197,15 @@
           var delta, time;
           delta = this.clock.getDelta();
           time = this.clock.getElapsedTime() * 10;
+          this.bloom = 0.6;
+          this.grain = 0.25;
+          this.scanlines = 0.025;
+          this.vignette = 1.5;
+          this.vignetteOffset = 1.0;
+          console.log(this.effectBloom);
+          this.effectFilm.uniforms.nIntensity.value = this;
+          this.effectVignette.uniforms.darkness.value = this.vignette;
+          this.effectVignette.uniforms.offset.value = this.vignetteOffset;
           requestAnimationFrame(this.animate);
           if (this.controls) {
             this.controls.update();
@@ -187,9 +217,11 @@
         App.prototype.render = function(time, delta) {
           this.renderer.clear();
           if (this.composer) {
+            this.renderModel.camera = this.currentCamera;
+            this.planet.camera = this.currentCamera;
             return this.composer.render(delta);
           } else {
-            return this.renderer.render(this.scene, this.camera);
+            return this.renderer.render(this.scene, this.currentCamera);
           }
         };
 
@@ -197,8 +229,10 @@
           var height, width;
           width = window.innerWidth;
           height = window.innerHeight;
-          this.camera.aspect = width / height;
-          this.camera.updateProjectionMatrix();
+          this.camera1.aspect = width / height;
+          this.camera2.aspect = this.camera1.aspect;
+          this.camera1.updateProjectionMatrix();
+          this.camera2.updateProjectionMatrix();
           if (this.controls) {
             this.controls.screen.width = width;
             this.controls.screen.height = height;

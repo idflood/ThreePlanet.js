@@ -34,6 +34,12 @@ define [
         # Create the renderer
         @renderer = new THREE.WebGLRenderer( { clearColor: 0x000000, alpha: true, clearAlpha: 1, antialias: true } )
 
+        @bloom = 0.6
+        @grain = 0.25
+        @scanlines = 0.025
+        @vignette = 1.5
+        @vignetteOffset = 1.0
+
         # Setup the world
         @createCamera()
         @createLights()
@@ -65,6 +71,13 @@ define [
         advanced.add(@planet.planetUtil, "scaleDepth", 0, 2)
         advanced.add(@planet.planetUtil, "Kr", 0, 0.01)
         advanced.add(@planet.planetUtil, "Km", 0, 0.1)
+
+        post = gui.addFolder("Post-processing")
+        post.add(@, "bloom", 0, 2)
+        post.add(@, "grain", 0, 2)
+        post.add(@, "scanlines", 0, 1)
+        post.add(@, "vignette", 0, 2)
+        post.add(@, "vignetteOffset", 0, 2)
         # dat.gui Issue with negative number (G is negative)
         # http://code.google.com/p/dat-gui/issues/detail?id=23
         #advanced.add(@planet.planetUtil, "G")
@@ -146,17 +159,17 @@ define [
 
         # Setup post-processing
         @renderModel = new THREE.RenderPass(@scene, @currentCamera)
-        @effectBloom = new THREE.BloomPass(0.5)
-        @effectFilm = new THREE.FilmPass(0.25, 0.025, 648, false)
+        @effectBloom = new THREE.BloomPass(@bloom)
+        @effectFilm = new THREE.FilmPass(@grain, @scanlines, 648, false)
         @effectVignette = new THREE.ShaderPass( THREE.VignetteShader )
-        @effectVignette.uniforms['darkness'].value = 1.5
+        @effectVignette.uniforms['darkness'].value = @vignette
 
         renderTargetParameters = { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.ARGBFormat, stencilBuffer: false }
         @renderTarget = new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, renderTargetParameters )
 
         @composer = new THREE.EffectComposer( @renderer, @renderTarget )
         @composer.addPass( @renderModel )
-        #@composer.addPass( @effectBloom )
+        @composer.addPass( @effectBloom )
         @composer.addPass( @effectFilm )
         @composer.addPass( @effectVignette )
 
@@ -185,6 +198,12 @@ define [
       animate: () =>
         delta = @clock.getDelta()
         time = @clock.getElapsedTime() * 10
+
+        @effectBloom.copyUniforms.opacity.value = @bloom
+        @effectFilm.uniforms.nIntensity.value = @grain
+        @effectFilm.uniforms.sIntensity.value = @scanlines
+        @effectVignette.uniforms.darkness.value = @vignette
+        @effectVignette.uniforms.offset.value = @vignetteOffset
 
         requestAnimationFrame( @animate )
         if @controls
