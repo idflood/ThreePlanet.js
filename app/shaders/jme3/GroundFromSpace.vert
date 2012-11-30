@@ -23,7 +23,7 @@ uniform float m_Time;
 uniform float m_Speed;
 
 attribute vec4 inPosition;          // vertex position in Model Coordinates
-attribute vec2 inTexCoord;
+attribute vec2 inTexCoord; 
 attribute vec4 inNormal;            // vertex normal in Model Coordinates
 
 varying vec2 texCoord;
@@ -98,7 +98,7 @@ void main(void)
    float fCameraOffset = fDepth * fCameraScale;
    float fTemp = (fLightScale * fCameraScale);
 
-   // Initialize the scattering loop variables
+   // Initialize the scattering loop variables   
    float fSampleLength = length(v3Pos) / m_fSamples;
    float fScaledLength = fSampleLength * m_fScale;
    vec3 v3SampleRay = v3Ray * fSampleLength;
@@ -121,7 +121,7 @@ void main(void)
     fLightIntensity = (dot(m_v3LightPos, vec3(inNormal)) + 1.0) * 0.5;
 
     // scattering colors
-    v4RayleighColor = vec4(clamp(v3FrontColor, 0.0, 3.0) * (m_v3InvWavelength * m_fKrESun + m_fKmESun), 0.0);
+    v4RayleighColor = vec4(clamp(v3FrontColor, 0.0, 3.0) * (m_v3InvWavelength * m_fKrESun + m_fKmESun), 0.0);    
     v4MieColor = vec4(clamp(v3Attenuate, 0.0, 3.0), 0.0);
 
     // Rotate surface textures in opposite directions
