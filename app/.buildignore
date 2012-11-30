@@ -1,0 +1,4 @@
+components/*
+shaders/blender/*
+shaders/jme3/*
+shaders/nvidia/*
