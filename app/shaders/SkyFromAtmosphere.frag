@@ -7,16 +7,10 @@ uniform float fExposure;
 uniform float fCameraHeight, fOuterRadius, fScaleDepth;
 
 varying vec3 v3Direction;
-varying vec4 v4RayleighColor;
-varying vec4 v4MieColor;
-
-
 varying float depth;
 
 varying vec4 primary_color;
 varying vec4 secondary_color;
-
-
 
 void main (void)
 {
@@ -32,10 +26,7 @@ void main (void)
   vec4 HDR = 1.0 - exp(f4Color * -fExposure);
   float nightmult = clamp(max(HDR.x, max(HDR.y, HDR.z))*1.5,0.0,1.0);
 
-  //gl_FragColor = vec4(ambient);
+  //gl_FragColor = vec4(f4Ambient);
   gl_FragColor = HDR;
   gl_FragColor.a = nightmult+(fOuterRadius - fCameraHeight);
-
-  //gl_FragColor.r = 1.0;
-  //gl_FragColor.a = 1.0;
 }

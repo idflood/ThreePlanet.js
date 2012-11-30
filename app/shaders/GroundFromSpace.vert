@@ -16,15 +16,8 @@ uniform float fScaleOverScaleDepth; // fScale / fScaleDepth
 //uniform int nSamples;
 const int nSamples = 2;
 uniform float fSamples;
-uniform float Time;
-uniform float Speed;
 
 varying vec2 texCoord;
-varying vec4 v4RayleighColor;
-varying vec4 v4MieColor;
-varying float fLightIntensity;
-
-
 varying vec4 primary_color;
 varying vec4 secondary_color;
 

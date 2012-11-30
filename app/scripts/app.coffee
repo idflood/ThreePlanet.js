@@ -90,7 +90,7 @@ define [
           uniforms: shader.uniforms
           side: THREE.BackSide
         mesh = new THREE.Mesh( new THREE.CubeGeometry( 10000, 10000, 10000 ), material )
-        #@scene.add( mesh )
+        @scene.add( mesh )
 
       updateWorld: (time, delta) =>
         @lightPosition.z = Math.cos(time * 0.05) * (@PLANET_RADIUS * 10)
@@ -146,7 +146,7 @@ define [
 
         # Setup post-processing
         @renderModel = new THREE.RenderPass(@scene, @currentCamera)
-        @effectBloom = new THREE.BloomPass(0.7)
+        @effectBloom = new THREE.BloomPass(0.5)
         @effectFilm = new THREE.FilmPass(0.25, 0.025, 648, false)
         @effectVignette = new THREE.ShaderPass( THREE.VignetteShader )
         @effectVignette.uniforms['darkness'].value = 1.5

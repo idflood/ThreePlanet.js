@@ -6,12 +6,7 @@ uniform sampler2D tGround;
 uniform sampler2D tClouds;
 uniform sampler2D tNight;
 
-varying vec4 v4RayleighColor;
-varying vec4 v4MieColor;
-varying float fLightIntensity;
-
 varying vec2 texCoord;
-
 varying vec4 primary_color;
 varying vec4 secondary_color;
 

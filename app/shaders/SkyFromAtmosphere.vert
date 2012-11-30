@@ -1,7 +1,5 @@
 //#version 110
 
-//uniform mat4 g_WorldViewProjectionMatrix;
-//uniform mat4 g_WorldMatrix;
 uniform vec3 v3CameraPos;	// The camera's current position
 uniform vec3 v3LightPos;	// The direction vector to the light source
 uniform vec3 v3InvWavelength;	// 1 / pow(wavelength, 4) for the red, green, and blue channels
@@ -10,7 +8,7 @@ uniform float fCameraHeight2;	// fCameraHeight^2
 uniform float fOuterRadius;	// The outer (atmosphere) radius
 uniform float fOuterRadius2;	// fOuterRadius^2
 uniform float fInnerRadius;	// The inner (planetary) radius
-uniform float fInnerRadius2;	// fInnerRadius^2
+//uniform float fInnerRadius2;	// fInnerRadius^2
 uniform float fKrESun;		// Kr * ESun
 uniform float fKmESun;		// Km * ESun
 uniform float fKr4PI;		// Kr * 4 * PI
@@ -20,10 +18,6 @@ uniform float fScaleDepth;	// The scale depth (i.e. the altitude at which the at
 uniform float fScaleOverScaleDepth; // fScale / fScaleDepth
 //uniform int nSamples;
 uniform float fSamples;
-//attribute vec4 inPosition;
-//varying vec3 v3Direction;
-//varying vec4 v4RayleighColor;
-//varying vec4 v4MieColor;
 
 mat4 g_WorldViewProjectionMatrix = projectionMatrix * modelViewMatrix;
 mat4 g_WorldMatrix = modelMatrix;
@@ -51,15 +45,15 @@ void main(void)
   // Get the ray from the camera to the vertex, and its length (which is the far point of the ray passing through the atmosphere)
 	vec3 v3Pos = vec3(g_WorldMatrix * inPosition);
 	vec3 v3Ray = v3Pos - v3CameraPos;
-	float fFar = length(v3Ray);
-	v3Ray /= fFar;
+  float fFar = length(v3Ray);
+  v3Ray /= fFar;
 
-	// Calculate the ray's starting position, then calculate its scattering offset
-	vec3 v3Start = v3CameraPos;
-	float fHeight = length(v3Start);
-	float fDepth = exp(fScaleOverScaleDepth * (fInnerRadius - fCameraHeight));
-	float fStartAngle = dot(v3Ray, v3Start) / fHeight;
-	float fStartOffset = fDepth*scale(fStartAngle);
+  // Calculate the ray's starting position, then calculate its scattering offset
+  vec3 v3Start = v3CameraPos;
+  float fHeight = length(v3Start);
+  float fDepth = exp(fScaleOverScaleDepth * (fInnerRadius - fCameraHeight));
+  float fStartAngle = dot(v3Ray, v3Start) / fHeight;
+  float fStartOffset = fDepth*scale(fStartAngle);
 
   float fStartDepth = exp(fScaleOverScaleDepth * (fInnerRadius - fCameraHeight));
   depth = clamp(fStartDepth*scale(fStartAngle),0.0,1.0);

@@ -28,8 +28,6 @@ varying float depth;
 varying vec4 primary_color;
 varying vec4 secondary_color;
 
-varying vec4 v4RayleighColor;
-varying vec4 v4MieColor;
 
 // assign as constant since "Loop index cannot be compared with non-constant expression"
 const int nSamples = 3;

@@ -58,23 +58,21 @@ define [
 
         # create 2 geometries since they will have different buffers
         details = 128
-        #@sphere = new THREE.SphereGeometry( 1, details * 2 * 4, details * 4)
         @sphere = new THREE.SphereGeometry( 1, details * 2, details)
         @sphere.computeTangents()
         @sphere2 = new THREE.SphereGeometry( 1, details * 2, details )
 
         @createBaseUniforms()
-
         @createShaderSkyFromSpace()
-
+        @createShaderGroundFromSpace()
         @createShaderSkyFromAtmosphere()
-        @mSkyFromSpace.transparent = true
+
         @mSkyFromSpace.blending = THREE.AdditiveAlphaBlending
+        @mSkyFromAtmosphere.blending = THREE.AdditiveAlphaBlending
+
         @atmosphere = new THREE.Mesh( @sphere2, @mSkyFromSpace )
         @atmosphere.scale.set(@planetUtil.outerRadius, @planetUtil.outerRadius, @planetUtil.outerRadius)
         @add(@atmosphere)
-
-        @createShaderGroundFromSpace()
 
         @ground = new THREE.Mesh( @sphere, @mGroundFromSpace )
         @ground.scale.set(@planetUtil.innerRadius, @planetUtil.innerRadius, @planetUtil.innerRadius)
@@ -100,50 +98,43 @@ define [
 
         @planetUtil.updateCalculations()
 
-        cameraDistance = @pos.distanceTo(@camera.position)
+        @cameraDistance = @pos.distanceTo(@camera.position)
+        @cameraDistance2 = @cameraDistance * @cameraDistance
         lightDistance = @pos.distanceTo(@sun.position)
-        lightpos = @sun.position.clone().divideScalar(lightDistance)
+        @lightpos = @sun.position.clone().divideScalar(lightDistance)
 
         planetToCamera = new THREE.Vector3().sub(@camera.position, @position)
         r = @planetUtil.innerRadius;
-        if cameraDistance < r + 1.0
+        if @cameraDistance < r + 1.0
             @camera.position = planetToCamera.normalize().multiplyScalar(r + 1.0)
 
         if @meshClouds
           @meshClouds.rotation.y = time * 0.002
 
-        if cameraDistance > @planetUtil.outerRadius
+        if @cameraDistance > @planetUtil.outerRadius
           @atmosphere.material = @mSkyFromSpace
           #@atmosphere.material = @mSkyFromAtmosphere
         else
           @atmosphere.material = @mSkyFromAtmosphere
           #console.log "atmo"
-        @mSkyFromSpace.uniforms.v3LightPos.value = lightpos
-        @mSkyFromSpace.uniforms.fCameraHeight.value = cameraDistance
-        @mSkyFromSpace.uniforms.fCameraHeight2.value = cameraDistance * cameraDistance
+
         @mSkyFromSpace.uniforms.v3InvWavelength.value = @planetUtil.invWavelength4
         @updateCommonUniforms(@mSkyFromSpace)
 
-        @mSkyFromAtmosphere.uniforms.v3LightPos.value = lightpos
-        @mSkyFromAtmosphere.uniforms.fCameraHeight.value = cameraDistance
-        @mSkyFromAtmosphere.uniforms.fCameraHeight2.value = cameraDistance * cameraDistance
         @mSkyFromAtmosphere.uniforms.v3InvWavelength.value = @planetUtil.invWavelength4
         @updateCommonUniforms(@mSkyFromAtmosphere)
 
-        if @mGroundFromSpace
-          @mGroundFromSpace.uniforms.v3LightPos.value = lightpos
-          @mGroundFromSpace.uniforms.Time.value = time
-          @mGroundFromSpace.uniforms.fCameraHeight.value = cameraDistance
-          @mGroundFromSpace.uniforms.fCameraHeight2.value = cameraDistance * cameraDistance
-          # Need to pass the camera position since three.js already pass it with matrixWorld applied
-          # # var position = camera.matrixWorld.getPosition();
-          # # _gl.uniform3f( p_uniforms.cameraPosition, position.x, position.y, position.z );
-          @mGroundFromSpace
-
-          @updateCommonUniforms(@mGroundFromSpace)
+        @updateCommonUniforms(@mGroundFromSpace)
 
       updateCommonUniforms: (shader) =>
+        shader.uniforms.v3LightPos.value = @lightpos
+        # Need to pass the camera position since three.js already pass it with matrixWorld applied
+        # # var position = camera.matrixWorld.getPosition();
+        # # _gl.uniform3f( p_uniforms.cameraPosition, position.x, position.y, position.z );
         shader.uniforms.v3CameraPos.value = @camera.position
+        shader.uniforms.fCameraHeight.value = @cameraDistance
+        shader.uniforms.fCameraHeight2.value = @cameraDistance2
+
         shader.uniforms.fExposure.value = @planetUtil.exposure
         shader.uniforms.fKrESun.value = @planetUtil.KrESun
         shader.uniforms.fKmESun.value = @planetUtil.KmESun
@@ -151,6 +142,7 @@ define [
         shader.uniforms.fKr4PI.value = @planetUtil.Kr4PI
         shader.uniforms.fKm4PI.value = @planetUtil.Km4PI
 
+        shader.uniforms.fScale.value = @planetUtil.scale
         shader.uniforms.fScaleDepth.value = @planetUtil.scaleDepth
         shader.uniforms.fScaleOverScaleDepth.value = @planetUtil.scaleOverScaleDepth
 
@@ -160,13 +152,9 @@ define [
 
         shader.uniforms.fg.value = @planetUtil.G
         shader.uniforms.fg2.value = @planetUtil.G * @planetUtil.G
-        shader.uniforms.fScale.value = @planetUtil.scale
 
       createBaseUniforms: () =>
         @baseUniforms =
-          Time:
-            type: 'f'
-            value: 0.0
           v3CameraPos:
             type: 'v3'
             value: @camera.position
@@ -231,20 +219,18 @@ define [
       createShaderSkyFromAtmosphere: () =>
         uniformsBase = THREE.UniformsUtils.clone(@baseUniforms)
 
-        #$.extend(uniformsBase, uniformsSky)
         @mSkyFromAtmosphere = new THREE.ShaderMaterial
           uniforms: uniformsBase
           vertexShader: SkyFromAtmosphereVert
           fragmentShader: SkyFromAtmosphereFrag
           side: THREE.BackSide
-          #depthWrite: false
-          #depthWrite: false
-          #shading: THREE.FlatShading
+          shading: THREE.SmoothShading
+          depthWrite: false
+          transparent: true
 
       createShaderSkyFromSpace: () =>
         uniformsBase = THREE.UniformsUtils.clone(@baseUniforms)
 
-        #$.extend(uniformsBase, uniformsSky)
         @mSkyFromSpace = new THREE.ShaderMaterial
           uniforms: uniformsBase
           vertexShader: SkyFromSpaceVert
@@ -252,7 +238,7 @@ define [
           side: THREE.BackSide
           shading: THREE.SmoothShading
           depthWrite: false
-          #shading: THREE.FlatShading
+          transparent: true
 
       createShaderGroundFromSpace: () =>
         planetTexture = THREE.ImageUtils.loadTexture("textures/earth_atmos_2048.jpg")
