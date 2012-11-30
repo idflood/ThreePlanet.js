@@ -1,4 +1,10 @@
-//#version 110
+// Atmospheric scattering shader
+//
+// Author: Sean O'Neil
+//
+// Copyright (c) 2004 Sean O'Neil
+//
+// Based on the blender example
 
 uniform vec3 v3LightPos;
 uniform float fg;
@@ -29,4 +35,5 @@ void main (void)
   //gl_FragColor = vec4(f4Ambient);
   gl_FragColor = HDR;
   gl_FragColor.a = nightmult+(fOuterRadius - fCameraHeight);
+  //gl_FragColor.a = nightmult;
 }

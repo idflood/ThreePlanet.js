@@ -1,4 +1,10 @@
-//#version 110
+// Atmospheric scattering shader
+//
+// Author: Sean O'Neil
+//
+// Copyright (c) 2004 Sean O'Neil
+//
+// Based on the blender example
 
 uniform vec3 v3LightPos;
 uniform float fg;

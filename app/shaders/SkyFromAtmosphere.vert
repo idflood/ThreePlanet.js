@@ -1,4 +1,10 @@
-//#version 110
+// Atmospheric scattering shader
+//
+// Author: Sean O'Neil
+//
+// Copyright (c) 2004 Sean O'Neil
+//
+// Based on the blender example
 
 uniform vec3 v3CameraPos;	// The camera's current position
 uniform vec3 v3LightPos;	// The direction vector to the light source

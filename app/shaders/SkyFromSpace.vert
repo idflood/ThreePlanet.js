@@ -1,8 +1,11 @@
-//#version 110
+// Atmospheric scattering shader
+//
+// Author: Sean O'Neil
+//
+// Copyright (c) 2004 Sean O'Neil
+//
+// Based on the blender example
 
-//uniform mat4 g_WorldViewProjectionMatrix;
-//uniform mat4 g_WorldMatrix;
-//uniform mat4 g_NormalMatrix;
 uniform vec3 v3CameraPos;       // The camera's current position
 uniform vec3 v3LightPos;        // The Light Position
 uniform vec3 v3InvWavelength;   // 1 / pow(wavelength, 4) for the red, green, and blue channels
