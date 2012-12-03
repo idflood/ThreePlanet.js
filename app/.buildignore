@@ -1,4 +1,13 @@
-components/*
+components/threejs/docs/*
+components/threejs/editor/*
+components/threejs/src/*
+components/threejs/utils/*
+components/threejs/examples/fonts/*
+components/threejs/examples/models/*
+components/threejs/examples/obj/*
+components/threejs/examples/scenes/*
+components/threejs/examples/sounds/*
+components/threejs/examples/textures/*
 shaders/blender/*
 shaders/jme3/*
 shaders/nvidia/*
