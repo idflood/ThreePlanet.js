@@ -54,8 +54,6 @@ define [
         @invWavelength4.y = 1.0 / Math.pow(@wavelength.y, 4.0)
         @invWavelength4.z = 1.0 / Math.pow(@wavelength.z, 4.0)
 
-
-
     Planet: class Planet extends THREE.Object3D
       constructor: (@radius, @pos, @sun, @camera) ->
         super
@@ -183,7 +181,7 @@ define [
           fExposure:
             type: 'f'
             value: @planetUtil.exposure
-          fScaleDepth  :
+          fScaleDepth:
             type: 'f'
             value: @planetUtil.scaleDepth
           fScaleOverScaleDepth:
@@ -192,9 +190,6 @@ define [
           fSamples:
             type: 'f'
             value: @planetUtil.nSamples
-          Speed:
-            type: 'f'
-            value: 0.005
           v3InvWavelength:
             type: 'v3'
             value: @planetUtil.invWavelength4
