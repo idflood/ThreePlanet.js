@@ -19,8 +19,7 @@ varying vec4 secondary_color;
 
 void main (void)
 {
-   float fCos = dot(v3LightPos, v3Direction) / length(v3Direction);
-
+  float fCos = dot(v3LightPos, v3Direction) / length(v3Direction);
   float fRayleighPhase = 0.75 * (1.0 + (fCos*fCos));
   float fMiePhase = 1.5 * ((1.0 - fg2) / (2.0 + fg2)) * (1.0 + fCos*fCos) / pow(1.0 + fg2 - 2.0*fg*fCos, 1.5);
 

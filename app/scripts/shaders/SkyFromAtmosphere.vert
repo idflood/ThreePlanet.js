@@ -49,8 +49,8 @@ void main(void)
   gl_Position = g_WorldViewProjectionMatrix * inPosition;
 
   // Get the ray from the camera to the vertex, and its length (which is the far point of the ray passing through the atmosphere)
-	vec3 v3Pos = vec3(g_WorldMatrix * inPosition);
-	vec3 v3Ray = v3Pos - v3CameraPos;
+  vec3 v3Pos = vec3(g_WorldMatrix * inPosition);
+  vec3 v3Ray = v3Pos - v3CameraPos;
   float fFar = length(v3Ray);
   v3Ray /= fFar;
 
@@ -64,29 +64,29 @@ void main(void)
   float fStartDepth = exp(fScaleOverScaleDepth * (fInnerRadius - fCameraHeight));
   depth = clamp(fStartDepth*scale(fStartAngle),0.0,1.0);
 
-	// Initialize the scattering loop variables
-	float fSampleLength = fFar / fSamples;
-	float fScaledLength = fSampleLength * fScale;
-	vec3 v3SampleRay = v3Ray * fSampleLength;
-	vec3 v3SamplePoint = v3Start + v3SampleRay * 0.5;
+  // Initialize the scattering loop variables
+  float fSampleLength = fFar / fSamples;
+  float fScaledLength = fSampleLength * fScale;
+  vec3 v3SampleRay = v3Ray * fSampleLength;
+  vec3 v3SamplePoint = v3Start + v3SampleRay * 0.5;
 
-	// Now loop through the sample rays
-	vec3 v3FrontColor = vec3(0.0, 0.0, 0.0);
+  // Now loop through the sample rays
+  vec3 v3FrontColor = vec3(0.0, 0.0, 0.0);
   vec3 v3Attenuate = vec3(0.0, 0.0, 0.0);
-	for(int i=0; i<nSamples; i++)
-	{
-		float fHeight = length(v3SamplePoint);
-		float fDepth = exp(fScaleOverScaleDepth * (fInnerRadius - fHeight));
-		float fLightAngle = dot(v3LightPos, v3SamplePoint) / fHeight;
-		float fCameraAngle = dot(v3Ray, v3SamplePoint) / fHeight;
-		float fScatter = (fStartOffset + fDepth*(scale(fLightAngle) - scale(fCameraAngle)));
-		vec3 v3Attenuate = exp(-fScatter * (v3InvWavelength * fKr4PI + fKm4PI));
-		v3FrontColor += v3Attenuate * (fDepth * fScaledLength);
-		v3SamplePoint += v3SampleRay;
-	}
+  for(int i=0; i<nSamples; i++)
+  {
+    float fHeight = length(v3SamplePoint);
+    float fDepth = exp(fScaleOverScaleDepth * (fInnerRadius - fHeight));
+    float fLightAngle = dot(v3LightPos, v3SamplePoint) / fHeight;
+    float fCameraAngle = dot(v3Ray, v3SamplePoint) / fHeight;
+    float fScatter = (fStartOffset + fDepth*(scale(fLightAngle) - scale(fCameraAngle)));
+    vec3 v3Attenuate = exp(-fScatter * (v3InvWavelength * fKr4PI + fKm4PI));
+    v3FrontColor += v3Attenuate * (fDepth * fScaledLength);
+    v3SamplePoint += v3SampleRay;
+  }
 
   secondary_color = vec4(v3FrontColor * fKmESun, 1.0);
   primary_color = vec4(v3FrontColor * (v3InvWavelength * fKrESun), 1.0);
 
-	v3Direction = v3CameraPos - v3Pos;
+  v3Direction = v3CameraPos - v3Pos;
 }
