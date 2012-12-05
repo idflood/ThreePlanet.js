@@ -9,7 +9,7 @@
 uniform vec3 v3CameraPos;       // The camera's current position
 uniform vec3 v3LightPos;        // The Light Position
 uniform vec3 v3InvWavelength;   // 1 / pow(wavelength, 4) for the red, green, and blue channels
-uniform float fCameraHeight;    // The camera's current height
+//uniform float fCameraHeight;    // The camera's current height
 uniform float fCameraHeight2;   // fCameraHeight^2
 uniform float fOuterRadius;     // The outer (atmosphere) radius
 uniform float fOuterRadius2;    // fOuterRadius^2
@@ -22,32 +22,21 @@ uniform float fKm4PI;           // Km * 4 * PI
 uniform float fScale;           // 1 / (fOuterRadius - fInnerRadius)
 uniform float fScaleDepth;      // The scale depth (i.e. the altitude at which the atmosphere's average density is found)
 uniform float fScaleOverScaleDepth; // fScale / fScaleDepth
-//uniform int nSamples;
+// assign as constant since "Loop index cannot be compared with non-constant expression"
+const int nSamples = 2;
 uniform float fSamples;
-//attribute vec4 inPosition;
+
+
 varying vec3 v3Direction;
 varying float depth;
-
 varying vec4 primary_color;
 varying vec4 secondary_color;
 
-
-// assign as constant since "Loop index cannot be compared with non-constant expression"
-const int nSamples = 2;
 
 mat4 g_WorldViewProjectionMatrix = projectionMatrix * modelViewMatrix;
 mat4 g_WorldMatrix = modelMatrix;
 
 float fInvScaleDepth = (1.0 / fScaleDepth);
-
-// Returns the near intersection point of a line and a sphere
-float getNearIntersection(vec3 v3Pos, vec3 v3Ray, float fDistance2, float fRadius2)
-{
-   float B = 2.0 * dot(v3Pos, v3Ray);
-   float C = fDistance2 - fRadius2;
-   float fDet = max(0.0, B*B - 4.0 * C);
-   return 0.5 * (-B - sqrt(fDet));
-}
 
 float scale(float fCos)
 {
@@ -59,13 +48,8 @@ void main(void)
 {
    vec4 inPosition = vec4(position, 1.0);
 
-
    // Get the ray from the camera to the vertex and its length (which is the far point of the ray passing through the atmosphere)
-   //vec3 v3Pos = vec3(g_WorldMatrix * inPosition);
-   // modelViewMatrix == g_WorldMatrix
-
    vec3 v3Pos = vec3(g_WorldMatrix * inPosition);
-   //vec3 v3Pos = position;
    vec3 v3Ray = v3Pos - v3CameraPos;
    float fFar = length(v3Ray);
    v3Ray /= fFar;
@@ -104,8 +88,8 @@ void main(void)
     v3FrontColor += v3Attenuate * (fDepth * fScaledLength);
     v3SamplePoint += v3SampleRay;
    }
-   primary_color = vec4(v3FrontColor * fKmESun, 1.0);
-   secondary_color = vec4(v3FrontColor * (v3InvWavelength * fKrESun), 1.0);
+   secondary_color = vec4(v3FrontColor * fKmESun, 1.0);
+   primary_color = vec4(v3FrontColor * (v3InvWavelength * fKrESun), 1.0);
    gl_Position = g_WorldViewProjectionMatrix * inPosition;
    v3Direction = v3CameraPos - v3Pos;
 }
