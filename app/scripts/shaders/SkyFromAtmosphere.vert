@@ -31,7 +31,7 @@ mat4 g_WorldMatrix = modelMatrix;
 // assign as constant since "Loop index cannot be compared with non-constant expression"
 const int nSamples = 2;
 
-varying vec3 v3Direction, v, Vert;
+varying vec3 v3Direction;
 varying float depth;
 
 varying vec4 primary_color;

@@ -14,7 +14,7 @@ uniform float fCameraHeight2;   // fCameraHeight^2
 uniform float fOuterRadius;     // The outer (atmosphere) radius
 uniform float fOuterRadius2;    // fOuterRadius^2
 uniform float fInnerRadius;     // The inner (planetary) radius
-uniform float fInnerRadius2;    // fInnerRadius^2
+//uniform float fInnerRadius2;    // fInnerRadius^2
 uniform float fKrESun;          // Kr * ESun
 uniform float fKmESun;          // Km * ESun
 uniform float fKr4PI;           // Kr * 4 * PI
@@ -33,7 +33,7 @@ varying vec4 secondary_color;
 
 
 // assign as constant since "Loop index cannot be compared with non-constant expression"
-const int nSamples = 3;
+const int nSamples = 2;
 
 mat4 g_WorldViewProjectionMatrix = projectionMatrix * modelViewMatrix;
 mat4 g_WorldMatrix = modelMatrix;
