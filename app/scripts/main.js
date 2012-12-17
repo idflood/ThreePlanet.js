@@ -19,19 +19,19 @@ require.config({
 
   paths: {
     jquery: 'vendor/jquery.min',
-    Three: '../components/threejs/build/Three',
-    CopyShader: '../components/threejs/examples/js/shaders/CopyShader',
-    ConvolutionShader: '../components/threejs/examples/js/shaders/ConvolutionShader',
-    VignetteShader: '../components/threejs/examples/js/shaders/VignetteShader',
-    FilmShader: '../components/threejs/examples/js/shaders/FilmShader',
-    TrackballControls: '../components/threejs/examples/js/controls/TrackballControls',
-    EffectComposer: '../components/threejs/examples/js/postprocessing/EffectComposer',
-    RenderPass: '../components/threejs/examples/js/postprocessing/RenderPass',
-    BloomPass: '../components/threejs/examples/js/postprocessing/BloomPass',
-    FilmPass: '../components/threejs/examples/js/postprocessing/FilmPass',
-    TexturePass: '../components/threejs/examples/js/postprocessing/TexturePass',
-    ShaderPass: '../components/threejs/examples/js/postprocessing/ShaderPass',
-    MaskPass: '../components/threejs/examples/js/postprocessing/MaskPass'
+    Three: '../../components/threejs/build/Three',
+    CopyShader: '../../components/threejs/examples/js/shaders/CopyShader',
+    ConvolutionShader: '../../components/threejs/examples/js/shaders/ConvolutionShader',
+    VignetteShader: '../../components/threejs/examples/js/shaders/VignetteShader',
+    FilmShader: '../../components/threejs/examples/js/shaders/FilmShader',
+    TrackballControls: '../../components/threejs/examples/js/controls/TrackballControls',
+    EffectComposer: '../../components/threejs/examples/js/postprocessing/EffectComposer',
+    RenderPass: '../../components/threejs/examples/js/postprocessing/RenderPass',
+    BloomPass: '../../components/threejs/examples/js/postprocessing/BloomPass',
+    FilmPass: '../../components/threejs/examples/js/postprocessing/FilmPass',
+    TexturePass: '../../components/threejs/examples/js/postprocessing/TexturePass',
+    ShaderPass: '../../components/threejs/examples/js/postprocessing/ShaderPass',
+    MaskPass: '../../components/threejs/examples/js/postprocessing/MaskPass'
   }
 });
 
